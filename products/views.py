@@ -5,6 +5,7 @@ from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import asyncio
+from .tasks import send_product_notification
 
 from .models import Product
 from .serializers import ProductSerializer
@@ -21,4 +22,8 @@ class ProductViewSet(ModelViewSet):
 async def async_health_check(request):
     await asyncio.sleep(1)
     return Response({"status": "ok"})
+
+def perform_create(self, serializer):
+    product = serializer.save()
+    send_product_notification.delay(product.id)
 
